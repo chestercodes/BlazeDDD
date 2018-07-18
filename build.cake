@@ -4,6 +4,8 @@ var configuration = Argument("configuration", "Release");
 var buildDir = Directory("./Web/bin") + Directory(configuration);
 var publishDir = Directory("./docs");
 var slnFile = "./BlazeDDD.sln";
+var repoName = "BlazeDDD";
+var webProject = "./Web/Web.csproj";
 
 Task("Clean").Does(() =>
 {
@@ -30,7 +32,7 @@ Task("Publish-WebProject").IsDependentOn("Build").Does(() =>
          OutputDirectory = "./.publish/"
      };
 
-    DotNetCorePublish("./Web/Web.csproj", settings);
+    DotNetCorePublish(webProject, settings);
 });
 
 Task("Move-Published-To-Docs").IsDependentOn("Publish-WebProject").Does(() =>
@@ -38,7 +40,7 @@ Task("Move-Published-To-Docs").IsDependentOn("Publish-WebProject").Does(() =>
     CopyDirectory("./.publish/Web/dist", "./docs");
     var indexFile = "./docs/index.html";
     var content = System.IO.File.ReadAllText(indexFile);
-    content = content.Replace("<base href=\"/\" />", "<base href=\"/BlazeDDD/\" />");
+    content = content.Replace("<base href=\"/\" />", "<base href=\"/" + repoName + "/\" />");
 
     System.IO.File.WriteAllText(indexFile, content);
 
