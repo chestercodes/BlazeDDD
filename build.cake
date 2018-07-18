@@ -41,6 +41,8 @@ Task("Move-Published-To-Docs").IsDependentOn("Publish-WebProject").Does(() =>
     content = content.Replace("<base href=\"/\" />", "<base href=\"/BlazeDDD/\" />");
 
     System.IO.File.WriteAllText(indexFile, content);
+
+    System.IO.File.WriteAllText("./docs/.nojekyll", "");
 });
 
 Task("Default").IsDependentOn("Move-Published-To-Docs");
