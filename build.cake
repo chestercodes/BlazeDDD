@@ -36,6 +36,11 @@ Task("Publish-WebProject").IsDependentOn("Build").Does(() =>
 Task("Move-Published-To-Docs").IsDependentOn("Publish-WebProject").Does(() =>
 {
     CopyDirectory("./.publish/Web/dist", "./docs");
+    var indexFile = "./docs/index.html";
+    var content = System.IO.File.ReadAllText(indexFile);
+    content = content.Replace("<base href=\"/\" />", "<base href=\"/BlazerDDD/\" />");
+
+    System.IO.File.WriteAllText(indexFile, content);
 });
 
 Task("Default").IsDependentOn("Move-Published-To-Docs");
