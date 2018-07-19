@@ -1,7 +1,94 @@
 ﻿@page "/"
+@inject HttpClient Http
+@using SharedCode
 
-<h1>Hello, world!</h1>
+<h2>DDD events near you!</h2>
 
-Welcome to your new app.
+<div>
+    @if (dayEvents == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <div>
+            <table class="table">
+                <thead>
+
+                    <tr>
+                        <th rowspan="3">Name</th>
+                        <th colspan="4">Session</th>
+                        <th rowspan="3">Agenda announced</th>
+                        <th rowspan="3">Registration open</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Submission</th>
+                        <th colspan="2">Voting</th>
+                    </tr>
+                    <tr>
+                        <th>Opens</th>
+                        <th>Closes</th>
+                        <th>Opens</th>
+                        <th>Closes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dayEvent in dayEvents)
+                    {
+                        <tr>
+                            <td>@dayEvent.Name</td>
+                            <td>@FormatDate(dayEvent.SessionSubmissionOpens)</td>
+                            <td>@FormatDate(dayEvent.SessionSubmissionCloses)</td>
+                            <td>@FormatDate(dayEvent.SessionVotingOpens)</td>
+                            <td>@FormatDate(dayEvent.SessionVotingCloses)</td>
+                            <td>@FormatDate(dayEvent.AgendaAnnounced)</td>
+                            <td>@FormatDate(dayEvent.RegistrationOpens)</td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@functions {
+DayEvent[] dayEvents;
+DDDEvents.CustomerName customerName;
+DDDEvents.CustomerName2 customerName2;
+
+protected override async Task OnInitAsync()
+{
+    dayEvents = await Http.GetJsonAsync<DayEvent[]>("data/ddd.json");
+
+    //customerName = await Http.GetJsonAsync<DDDEvents.CustomerName>("data/customer.json");
+    customerName2 = await Http.GetJsonAsync<DDDEvents.CustomerName2>("data/customer.json");
+
+}
+
+protected string FormatDate(DateTime? date)
+{
+    if (date.HasValue)
+    {
+        return date.Value.ToShortDateString();
+    }
+    else
+    {
+        return "";
+    }
+}
+
+class DayEvent
+{
+    public string Name { get; set; }
+    public DateTime? SessionSubmissionOpens { get; set; }
+    public DateTime? SessionSubmissionCloses { get; set; }
+    public DateTime? SessionVotingOpens { get; set; }
+    public DateTime? SessionVotingCloses { get; set; }
+    public DateTime? AgendaAnnounced { get; set; }
+    public DateTime? RegistrationOpens { get; set; }
+    public string Region { get; set; }
+    public string Area { get; set; }
+}
+}
