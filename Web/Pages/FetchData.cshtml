@@ -1,5 +1,6 @@
 ﻿@page "/fetchdata"
 @inject HttpClient Http
+@using SharedCode
 
 <h1>Weather forecast</h1>
 
@@ -11,6 +12,14 @@
     }
     else
     {
+        @*<p>first: @customerName.FirstName</p>
+        <p>middle: @customerName.MiddleInitial</p>
+        <p>third: @customerName.LastName</p>*@
+
+        <p>first: @customerName2.FirstName</p>
+        <p>middle: @customerName2.MiddleInitial</p>
+        <p>third: @customerName2.LastName</p>
+
         foreach (var dayEvent in dayEvents)
         {
             <div>
@@ -32,11 +41,16 @@
 
 @functions {
     DayEvent[] dayEvents;
+    DDDEvents.CustomerName customerName;
+    DDDEvents.CustomerName2 customerName2;
 
     protected override async Task OnInitAsync()
     {
+        dayEvents = await Http.GetJsonAsync<DayEvent[]>("data/ddd.json");
 
-        dayEvents = await Http.GetJsonAsync<DayEvent[]>("sample-data/dddata.json");
+        //customerName = await Http.GetJsonAsync<DDDEvents.CustomerName>("data/customer.json");
+        customerName2 = await Http.GetJsonAsync<DDDEvents.CustomerName2>("data/customer.json");
+
     }
 
     protected string FormatDate(DateTime? date)
