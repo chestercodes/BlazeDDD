@@ -4,49 +4,63 @@
 <h1>Weather forecast</h1>
 
 <p>This component demonstrates fetching data from the server.</p>
-
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div>
+    @if (dayEvents == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        foreach (var dayEvent in dayEvents)
+        {
+            <div>
+                <table class="table">
+                    <tbody>
+                        <tr><td>Name</td><td>@dayEvent.Name</td></tr>
+                        <tr><td>Session submission opens</td>  <td>@FormatDate(dayEvent.SessionSubmissionOpens)</td></tr>
+                        <tr><td>Session submission closes</td> <td>@FormatDate(dayEvent.SessionSubmissionCloses)</td></tr>
+                        <tr><td>Session voting opens</td>      <td>@FormatDate(dayEvent.SessionVotingOpens)</td></tr>
+                        <tr><td>Session voting closes</td>     <td>@FormatDate(dayEvent.SessionVotingCloses)</td></tr>
+                        <tr><td>Agenda announced</td>          <td>@FormatDate(dayEvent.AgendaAnnounced)</td></tr>
+                        <tr><td>Registration opens</td>        <td>@FormatDate(dayEvent.RegistrationOpens)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>
 
 @functions {
-    WeatherForecast[] forecasts;
+    DayEvent[] dayEvents;
 
     protected override async Task OnInitAsync()
     {
-        forecasts = await Http.GetJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+
+        dayEvents = await Http.GetJsonAsync<DayEvent[]>("sample-data/dddata.json");
     }
 
-    class WeatherForecast
+    protected string FormatDate(DateTime? date)
     {
-        public DateTime Date { get; set; }
-        public int TemperatureC { get; set; }
-        public int TemperatureF { get; set; }
-        public string Summary { get; set; }
+        if (date.HasValue)
+        {
+            return date.Value.ToShortDateString();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    class DayEvent
+    {
+        public string Name { get; set; }
+        public DateTime? SessionSubmissionOpens { get; set; }
+        public DateTime? SessionSubmissionCloses { get; set; }
+        public DateTime? SessionVotingOpens { get; set; }
+        public DateTime? SessionVotingCloses { get; set; }
+        public DateTime? AgendaAnnounced { get; set; }
+        public DateTime? RegistrationOpens { get; set; }
+        public string Region { get; set; }
+        public string Area { get; set; }
     }
 }
