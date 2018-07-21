@@ -5,7 +5,41 @@
 <h2>DDD events near you!</h2>
 
 <div>
-    @if (dayEvents == null)
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <p>I'm interested in:</p>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Speaking) ? "active" : "" ) " >
+                        <input type="radio" name="options" id="role_speaking" autocomplete="off" 
+                               onclick="@SelectRole(DDDEvents.SelectedRole.Speaking)"  /> Speaking
+                    </label>
+                    
+                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Attending) ? "active" : "" ) " >
+                        <input type="radio" name="options" id="role_attending" autocomplete="off" 
+                               onclick="@SelectRole(DDDEvents.SelectedRole.Attending)"  /> Attending
+                    </label>
+                </div>
+            </div>
+
+            @if (ddd != null)
+            {
+                <div class="col">
+                    <p>Region</p>
+                    <select class="custom-select">
+                        <option value="all">All</option>
+
+                        @foreach (var region in ddd.Regions)
+                        {
+                            <option value="@region">@region</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ddd == null)
     {
         <p><em>Loading...</em></p>
     }
@@ -15,7 +49,6 @@
         <div>
             <table class="table">
                 <thead>
-
                     <tr>
                         <th rowspan="3">Name</th>
                         <th colspan="4">Session</th>
@@ -34,16 +67,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var dayEvent in dayEvents)
+                    @foreach (var dayEvent in ddd.Events)
                     {
                         <tr>
                             <td>@dayEvent.Name</td>
-                            <td>@FormatDate(dayEvent.SessionSubmissionOpens)</td>
-                            <td>@FormatDate(dayEvent.SessionSubmissionCloses)</td>
-                            <td>@FormatDate(dayEvent.SessionVotingOpens)</td>
-                            <td>@FormatDate(dayEvent.SessionVotingCloses)</td>
-                            <td>@FormatDate(dayEvent.AgendaAnnounced)</td>
-                            <td>@FormatDate(dayEvent.RegistrationOpens)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionOpens)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionCloses)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.SessionVotingOpens)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.SessionVotingCloses)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.AgendaAnnounced)</td>
+                            <td>@DDDEvents.formatDate(dayEvent.RegistrationOpens)</td>
                         </tr>
                     }
 
@@ -54,41 +87,26 @@
 </div>
 
 @functions {
-DayEvent[] dayEvents;
-DDDEvents.CustomerName customerName;
-DDDEvents.CustomerName2 customerName2;
 
-protected override async Task OnInitAsync()
-{
-    dayEvents = await Http.GetJsonAsync<DayEvent[]>("data/ddd.json");
+    DDDEvents.DDD ddd;
+    DDDEvents.Selected selected = new DDDEvents.Selected(DDDEvents.SelectedRole.Speaking, "");
 
-    //customerName = await Http.GetJsonAsync<DDDEvents.CustomerName>("data/customer.json");
-    customerName2 = await Http.GetJsonAsync<DDDEvents.CustomerName2>("data/customer.json");
-
-}
-
-protected string FormatDate(DateTime? date)
-{
-    if (date.HasValue)
+    protected bool RoleSelected(DDDEvents.SelectedRole role)
     {
-        return date.Value.ToShortDateString();
+        return selected.Role == role;
     }
-    else
-    {
-        return "";
-    }
-}
 
-class DayEvent
-{
-    public string Name { get; set; }
-    public DateTime? SessionSubmissionOpens { get; set; }
-    public DateTime? SessionSubmissionCloses { get; set; }
-    public DateTime? SessionVotingOpens { get; set; }
-    public DateTime? SessionVotingCloses { get; set; }
-    public DateTime? AgendaAnnounced { get; set; }
-    public DateTime? RegistrationOpens { get; set; }
-    public string Region { get; set; }
-    public string Area { get; set; }
-}
+    protected Action SelectRole(DDDEvents.SelectedRole role)
+    {
+        return () =>
+        {
+            selected = new DDDEvents.Selected(role, selected.Region);
+        };
+    }
+
+    protected override async Task OnInitAsync()
+    {
+        ddd = await Http.GetJsonAsync<DDDEvents.DDD>("data/ddd.json");
+
+    }
 }
