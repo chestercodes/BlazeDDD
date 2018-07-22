@@ -3,7 +3,7 @@ open SharedCode.DDDEvents
 open System
 open FSharp.Data
 
-type DDDEventJson = JsonProvider<"../data/Template.json">
+type DDDEventJson = JsonProvider<"../Template.json">
 
 let throwIfdoesntExist dir =
     if not (Directory.Exists(dir)) then
@@ -18,6 +18,7 @@ let maptoWritable (dddEvent:DDDEventJson.Root): DDDEvent =
     { 
         Name = dddEvent.Name; 
         Type = dddEvent.Type; 
+        Location = dddEvent.Location; 
         Date = dddEvent.Date; 
         SessionSubmissionOpens = oToN dddEvent.SessionSubmissionOpens 
         SessionSubmissionCloses = oToN dddEvent.SessionSubmissionCloses
@@ -66,5 +67,4 @@ let processData (directory: string) (outputPath: string) =
 let main argv =
     printfn "Running data processing"
     processData "../data" "../Web/wwwroot/data/ddd.json"
-    //DDDEvents.processData "blah1" "blah2"
     0 // return an integer exit code

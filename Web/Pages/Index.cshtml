@@ -7,33 +7,39 @@
 <div>
     <div class="container">
         <div class="row">
-            <div class="col">
+            <div class="col event-filters">
                 <p>I'm interested in:</p>
                 <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Speaking) ? "active" : "" ) " >
-                        <input type="radio" name="options" id="role_speaking" autocomplete="off" 
-                               onclick="@SelectRole(DDDEvents.SelectedRole.Speaking)"  /> Speaking
+                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Speaking) ? "active" : "" ) ">
+                        <input type="radio" name="options" id="role_speaking" autocomplete="off"
+                               onclick="@SelectRole(DDDEvents.SelectedRole.Speaking)" /> Speaking
                     </label>
-                    
-                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Attending) ? "active" : "" ) " >
-                        <input type="radio" name="options" id="role_attending" autocomplete="off" 
-                               onclick="@SelectRole(DDDEvents.SelectedRole.Attending)"  /> Attending
+
+                    <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Attending) ? "active" : "" ) ">
+                        <input type="radio" name="options" id="role_attending" autocomplete="off"
+                               onclick="@SelectRole(DDDEvents.SelectedRole.Attending)" /> Attending
                     </label>
                 </div>
             </div>
 
             @if (ddd != null)
             {
-                <div class="col">
+                <div class="col region-filters">
                     <p>Region</p>
-                    <select class="custom-select">
-                        <option value="all">All</option>
 
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary @( RegionSelected(DDDEvents.AllRegions) ? "active" : "" ) ">
+                            <input type="radio" name="options" id="region_all" autocomplete="off"
+                                   onclick="@SelectRegion(DDDEvents.AllRegions)" /> All
+                        </label>
                         @foreach (var region in ddd.Regions)
                         {
-                            <option value="@region">@region</option>
-                        }
-                    </select>
+                            <label class="btn btn-secondary @( RegionSelected(@region) ? "active" : "" ) ">
+                                <input type="radio" name="options" id="region_@region" autocomplete="off"
+                                       onclick="@SelectRegion(region)" /> @region
+                                </label>
+                            }
+                    </div>
                 </div>
             }
         </div>
@@ -46,18 +52,16 @@
     else
     {
 
-        <div>
+        <div class="upcoming-events" >
             <table class="table">
-                <thead>
+                <thead class="upcoming-events-header">
                     <tr>
-                        <th rowspan="3">Name</th>
-                        <th colspan="4">Session</th>
-                        <th rowspan="3">Agenda announced</th>
-                        <th rowspan="3">Registration open</th>
-                    </tr>
-                    <tr>
-                        <th colspan="2">Submission</th>
-                        <th colspan="2">Voting</th>
+                        <th rowspan="2">Name</th>
+                        <th rowspan="2">Location</th>
+                        <th colspan="2">Session submission</th>
+                        <th colspan="2">Session voting</th>
+                        <th rowspan="2">Agenda announced</th>
+                        <th rowspan="2">Registration open</th>
                     </tr>
                     <tr>
                         <th>Opens</th>
@@ -67,17 +71,41 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var dayEvent in ddd.Events)
+                    @foreach (var dayEvent in FilterEvents())
                     {
-                        <tr>
-                            <td>@dayEvent.Name</td>
-                            <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionOpens)</td>
-                            <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionCloses)</td>
-                            <td>@DDDEvents.formatDate(dayEvent.SessionVotingOpens)</td>
-                            <td>@DDDEvents.formatDate(dayEvent.SessionVotingCloses)</td>
-                            <td>@DDDEvents.formatDate(dayEvent.AgendaAnnounced)</td>
-                            <td>@DDDEvents.formatDate(dayEvent.RegistrationOpens)</td>
-                        </tr>
+                    <tr class="upcoming-event" >
+                        <td>@dayEvent.Name</td>
+                        <td>@dayEvent.Location</td>
+                        <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionOpens)</td>
+                        <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionCloses)</td>
+                        <td>@DDDEvents.formatDate(dayEvent.SessionVotingOpens)</td>
+                        <td>@DDDEvents.formatDate(dayEvent.SessionVotingCloses)</td>
+                        <td>@DDDEvents.formatDate(dayEvent.AgendaAnnounced)</td>
+                        <td>@DDDEvents.formatDate(dayEvent.RegistrationOpens)</td>
+                    </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <h2>Past events</h2>
+        <div class="past-events">
+            <table class="table">
+                <thead class="past-events-header">
+                    <tr>
+                        <th>Name</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dayEvent in PastEvents())
+                    {
+                    <tr class="past-event">
+                        <td>@dayEvent.Name</td>
+                        <td>@dayEvent.Location</td>
+                        <td>@dayEvent.Date.ToShortDateString()</td>
+                    </tr>
                     }
 
                 </tbody>
@@ -86,27 +114,51 @@
     }
 </div>
 
-@functions {
+            @functions {
 
-    DDDEvents.DDD ddd;
-    DDDEvents.Selected selected = new DDDEvents.Selected(DDDEvents.SelectedRole.Speaking, "");
+                DDDEvents.DDD ddd;
+                DDDEvents.Selected selected = new DDDEvents.Selected(DDDEvents.SelectedRole.Speaking, DDDEvents.AllRegions);
 
-    protected bool RoleSelected(DDDEvents.SelectedRole role)
-    {
-        return selected.Role == role;
-    }
+                protected bool RoleSelected(DDDEvents.SelectedRole role)
+                {
+                    return selected.Role == role;
+                }
 
-    protected Action SelectRole(DDDEvents.SelectedRole role)
-    {
-        return () =>
-        {
-            selected = new DDDEvents.Selected(role, selected.Region);
-        };
-    }
+                protected Action SelectRole(DDDEvents.SelectedRole role)
+                {
+                    return () =>
+                    {
+                        selected = new DDDEvents.Selected(role, selected.Region);
+                    };
+                }
 
-    protected override async Task OnInitAsync()
-    {
-        ddd = await Http.GetJsonAsync<DDDEvents.DDD>("data/ddd.json");
+                protected bool RegionSelected(string region)
+                {
+                    return selected.Region == region;
+                }
 
-    }
-}
+                protected Action SelectRegion(string region)
+                {
+                    return () =>
+                    {
+                        selected = new DDDEvents.Selected(selected.Role, region);
+                    };
+                }
+
+                protected DDDEvents.DDDEvent[] FilterEvents()
+                {
+                    return DDDEvents.filterFutureEvents(selected, DateTime.Now, ddd);
+                }
+
+                protected DDDEvents.DDDEvent[] PastEvents()
+                {
+                    return DDDEvents.pastEvents(selected, DateTime.Now, ddd);
+                }
+
+
+                protected override async Task OnInitAsync()
+                {
+                    ddd = await Http.GetJsonAsync<DDDEvents.DDD>("data/ddd.json");
+
+                }
+            }
