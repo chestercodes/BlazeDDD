@@ -2,13 +2,10 @@
 @inject HttpClient Http
 @using SharedCode
 
-<h2>DDD events near you!</h2>
-
 <div>
     <div class="container">
         <div class="row">
             <div class="col event-filters">
-                <p>I'm interested in:</p>
                 <div class="btn-group btn-group-toggle" data-toggle="buttons">
                     <label class="btn btn-secondary @( RoleSelected(DDDEvents.SelectedRole.Speaking) ? "active" : "" ) ">
                         <input type="radio" name="options" id="role_speaking" autocomplete="off"
@@ -25,8 +22,7 @@
             @if (ddd != null)
             {
                 <div class="col region-filters">
-                    <p>Region</p>
-
+                    
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-secondary @( RegionSelected(DDDEvents.AllRegions) ? "active" : "" ) ">
                             <input type="radio" name="options" id="region_all" autocomplete="off"
@@ -51,42 +47,51 @@
     }
     else
     {
+        var filteredEvents = FilterEvents();
 
-        <div class="upcoming-events" >
-            <table class="table">
-                <thead class="upcoming-events-header">
-                    <tr>
-                        <th rowspan="2">Name</th>
-                        <th rowspan="2">Location</th>
-                        <th colspan="2">Session submission</th>
-                        <th colspan="2">Session voting</th>
-                        <th rowspan="2">Agenda announced</th>
-                        <th rowspan="2">Registration open</th>
-                    </tr>
-                    <tr>
-                        <th>Opens</th>
-                        <th>Closes</th>
-                        <th>Opens</th>
-                        <th>Closes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var dayEvent in FilterEvents())
-                    {
-                    <tr class="upcoming-event" >
-                        <td>@dayEvent.Name</td>
-                        <td>@dayEvent.Location</td>
-                        <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionOpens)</td>
-                        <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionCloses)</td>
-                        <td>@DDDEvents.formatDate(dayEvent.SessionVotingOpens)</td>
-                        <td>@DDDEvents.formatDate(dayEvent.SessionVotingCloses)</td>
-                        <td>@DDDEvents.formatDate(dayEvent.AgendaAnnounced)</td>
-                        <td>@DDDEvents.formatDate(dayEvent.RegistrationOpens)</td>
-                    </tr>
-                    }
+        <div class="upcoming-events">
+            
+            <h2>Upcoming events</h2>
 
-                </tbody>
-            </table>
+            @if (filteredEvents.Count() > 0)
+            {
+                <table class="table">
+                    <thead class="upcoming-events-header">
+                        <tr>
+                            <th rowspan="2">Name</th>
+                            <th rowspan="2">Location</th>
+                            <th colspan="2">Session submission</th>
+                            <th colspan="2">Session voting</th>
+                            <th rowspan="2">Agenda announced</th>
+                            <th rowspan="2">Registration open</th>
+                        </tr>
+                        <tr>
+                            <th>Opens</th>
+                            <th>Closes</th>
+                            <th>Opens</th>
+                            <th>Closes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dayEvent in filteredEvents)
+                        {
+                            <tr class="upcoming-event">
+                                <td>@dayEvent.Name</td>
+                                <td>@dayEvent.Location</td>
+                                <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionOpens)</td>
+                                <td>@DDDEvents.formatDate(dayEvent.SessionSubmissionCloses)</td>
+                                <td>@DDDEvents.formatDate(dayEvent.SessionVotingOpens)</td>
+                                <td>@DDDEvents.formatDate(dayEvent.SessionVotingCloses)</td>
+                                <td>@DDDEvents.formatDate(dayEvent.AgendaAnnounced)</td>
+                                <td>@DDDEvents.formatDate(dayEvent.RegistrationOpens)</td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            } else {
+                <h4>There are no upcoming events...</h4>
+            }
         </div>
         <h2>Past events</h2>
         <div class="past-events">
@@ -101,11 +106,11 @@
                 <tbody>
                     @foreach (var dayEvent in PastEvents())
                     {
-                    <tr class="past-event">
-                        <td>@dayEvent.Name</td>
-                        <td>@dayEvent.Location</td>
-                        <td>@dayEvent.Date.ToShortDateString()</td>
-                    </tr>
+                        <tr class="past-event">
+                            <td>@dayEvent.Name</td>
+                            <td>@dayEvent.Location</td>
+                            <td>@dayEvent.Date.ToShortDateString()</td>
+                        </tr>
                     }
 
                 </tbody>
@@ -114,51 +119,51 @@
     }
 </div>
 
-            @functions {
+@functions {
 
-                DDDEvents.DDD ddd;
-                DDDEvents.Selected selected = new DDDEvents.Selected(DDDEvents.SelectedRole.Speaking, DDDEvents.AllRegions);
+DDDEvents.DDD ddd;
+DDDEvents.Selected selected = new DDDEvents.Selected(DDDEvents.SelectedRole.Attending, DDDEvents.AllRegions);
 
-                protected bool RoleSelected(DDDEvents.SelectedRole role)
-                {
-                    return selected.Role == role;
-                }
+protected bool RoleSelected(DDDEvents.SelectedRole role)
+{
+    return selected.Role == role;
+}
 
-                protected Action SelectRole(DDDEvents.SelectedRole role)
-                {
-                    return () =>
-                    {
-                        selected = new DDDEvents.Selected(role, selected.Region);
-                    };
-                }
+protected Action SelectRole(DDDEvents.SelectedRole role)
+{
+    return () =>
+    {
+        selected = new DDDEvents.Selected(role, selected.Region);
+    };
+}
 
-                protected bool RegionSelected(string region)
-                {
-                    return selected.Region == region;
-                }
+protected bool RegionSelected(string region)
+{
+    return selected.Region == region;
+}
 
-                protected Action SelectRegion(string region)
-                {
-                    return () =>
-                    {
-                        selected = new DDDEvents.Selected(selected.Role, region);
-                    };
-                }
+protected Action SelectRegion(string region)
+{
+    return () =>
+    {
+        selected = new DDDEvents.Selected(selected.Role, region);
+    };
+}
 
-                protected DDDEvents.DDDEvent[] FilterEvents()
-                {
-                    return DDDEvents.filterFutureEvents(selected, DateTime.Now, ddd);
-                }
+protected DDDEvents.DDDEvent[] FilterEvents()
+{
+    return DDDEvents.filterFutureEvents(selected, DateTime.Now, ddd);
+}
 
-                protected DDDEvents.DDDEvent[] PastEvents()
-                {
-                    return DDDEvents.pastEvents(selected, DateTime.Now, ddd);
-                }
+protected DDDEvents.DDDEvent[] PastEvents()
+{
+    return DDDEvents.pastEvents(selected, DateTime.Now, ddd);
+}
 
 
-                protected override async Task OnInitAsync()
-                {
-                    ddd = await Http.GetJsonAsync<DDDEvents.DDD>("data/ddd.json");
+protected override async Task OnInitAsync()
+{
+    ddd = await Http.GetJsonAsync<DDDEvents.DDD>("data/ddd.json");
 
-                }
-            }
+}
+}

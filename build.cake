@@ -23,7 +23,12 @@ Task("Build").IsDependentOn("Restore-NuGet-Packages").Does(() =>
     DotNetCoreBuild(slnFile);
 });
 
-Task("Publish-WebProject").IsDependentOn("Build").Does(() =>
+Task("Run_Process").IsDependentOn("Build").Does(() =>
+{
+    DotNetCoreRun("./Process", "./Process");
+});
+
+Task("Publish-WebProject").IsDependentOn("Run_Process").Does(() =>
 {
     var settings = new DotNetCorePublishSettings
      {

@@ -66,5 +66,7 @@ let processData (directory: string) (outputPath: string) =
 [<EntryPoint>]
 let main argv =
     printfn "Running data processing"
-    processData "../data" "../Web/wwwroot/data/ddd.json"
+    let dir = if argv.Length > 0 then argv |> Array.head else ".."
+    printfn "Directory is %s" dir
+    processData (Path.Combine(dir, "../data")) (Path.Combine(dir, "../Web/wwwroot/data/ddd.json"))
     0 // return an integer exit code
